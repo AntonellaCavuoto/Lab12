@@ -1,3 +1,85 @@
+import copy
+
+from database.DAO import DAO
+import networkx as nx
+
+
 class Model:
     def __init__(self):
-        pass
+        self._bestObjFunction = 0
+        self._bestPath = []
+        self._graph = nx.Graph()
+        self._retailers = DAO.getRetailers()
+        self._idMap = {}
+        for r in self._retailers:
+            self._idMap[r.Retailer_code] = r
+
+    def getPaesi(self):
+        return DAO.getPaesi()
+
+    def buildGraph(self, paese, anno):
+        self.addNodes(paese)
+        self.addEdges(paese, anno)
+        return len(self._graph.nodes), len(self._graph.edges)
+
+    def addNodes(self, paese):
+        retPaese = DAO.getRetailersPaese(paese)
+
+        for ret in retPaese:
+            self._graph.add_node(self._idMap[ret.Retailer_code])
+
+    def addEdges(self, paese,anno):
+        archi = DAO.getEdges(paese, paese, anno)
+
+        for edg in archi:
+            ret1 = self._idMap[edg.rc1]
+            ret2 = self._idMap[edg.rc2]
+            self._graph.add_edge(ret1, ret2, weight = edg.peso)
+
+    def getVolumi(self):
+        lista = []
+        for n in self._graph.nodes():
+            vicini = list(self._graph.neighbors(n))
+            lista.append((n, self.countVolume(vicini, n)))
+
+
+        sortedList = sorted(lista, key = lambda x:x[1], reverse=True)
+        listaMax = sortedList[:6]
+
+        return listaMax
+
+    def countVolume(self, vicini, nodo):
+        if len(vicini) == 0:
+            return 0
+        volume = 0
+        for v in vicini:
+            volume += self._graph[nodo][v]["weight"]
+
+        return volume
+
+    def getPath(self, n):
+        self._bestPath = []
+        self._bestObjFunction = 0
+
+        parziale = []
+
+        self._ricorsione(parziale, n)
+
+        return self._bestPath, self._bestObjFunction
+
+    def _ricorsione(self, parziale, n):
+
+        if len(parziale) == n:
+            self._bestPath=copy.deepcopy(parziale)
+            self._bestObjFunction = self.getObjFun(parziale)
+
+        if len(parziale) == n+1:
+            return
+
+        for n in self._graph.nodes:
+            for vic in list(self._graph.neighbors(n)):
+                if len(parziale) == 0:
+                    parziale.append()
+
+
+

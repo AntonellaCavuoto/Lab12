@@ -12,16 +12,33 @@ class Controller:
         self._listCountry = []
 
     def fillDD(self):
-        pass
+        paesi = self._model.getPaesi()
+        for p in paesi:
+            self._view.ddcountry.options.append(ft.dropdown.Option(p))
+        i = 2015
+        for j in range(4):
+            if i <= 2018:
+                self._view.ddyear.options.append(ft.dropdown.Option(str(i)))
+                i += 1
+        self._view.update_page()
 
 
     def handle_graph(self, e):
-        pass
+        anno = self._view.ddyear.value
+        paese = self._view.ddcountry.value
 
+        numNodi, numArchi = self._model.buildGraph(paese, anno)
+        self._view.txt_result.controls.clear()
+        self._view.txt_result.controls.append(ft.Text(f"Numero di vertici: {numNodi} Numero di archi: {numArchi}"))
+        self._view.update_page()
 
 
     def handle_volume(self, e):
-        pass
+        volumi = self._model.getVolumi()
+
+        for v in volumi:
+            self._view.txtOut2.controls.append(ft.Text(f"{v[0]} --> {v[1]}"))
+        self._view.update_page()
 
 
     def handle_path(self, e):
