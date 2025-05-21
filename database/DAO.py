@@ -9,9 +9,10 @@ class DAO():
         conn = DBConnect.get_connection()
         result = []
         cursor = conn.cursor(dictionary = True)
-        query = """select distinct Country 
-                    from go_retailers gr 
-                    group by Country asc"""
+        query = """SELECT Country 
+FROM go_retailers
+GROUP BY Country
+ORDER BY Country ASC """
 
         cursor.execute(query)
 

@@ -28,13 +28,13 @@ class Model:
         for ret in retPaese:
             self._graph.add_node(self._idMap[ret.Retailer_code])
 
-    def addEdges(self, paese,anno):
+    def addEdges(self, paese, anno):
         archi = DAO.getEdges(paese, paese, anno)
 
         for edg in archi:
             ret1 = self._idMap[edg.rc1]
             ret2 = self._idMap[edg.rc2]
-            self._graph.add_edge(ret1, ret2, weight = edg.peso)
+            self._graph.add_edge(ret1, ret2, weight=edg.peso)
 
     def getVolumi(self):
         lista = []
@@ -42,8 +42,7 @@ class Model:
             vicini = list(self._graph.neighbors(n))
             lista.append((n, self.countVolume(vicini, n)))
 
-
-        sortedList = sorted(lista, key = lambda x:x[1], reverse=True)
+        sortedList = sorted(lista, key=lambda x: x[1], reverse=True)
         listaMax = sortedList[:6]
 
         return listaMax
@@ -57,29 +56,77 @@ class Model:
 
         return volume
 
+    # def getPath(self, n):
+    #     self._bestPath = []
+    #     self._bestObjFunction = 0
+    #
+    #     parziale = []
+    #     visitato = []
+    #
+    #     # self._ricorsione(parziale, n)
+    #     for node in self._graph.nodes:
+    #         parziale.append(node)
+    #         self._ricorsione(n, node, node, parziale, [], 0)
+    #         parziale.pop()
+    #     print(len(self._bestPath))
+    #     return self._bestPath, self._bestObjFunction
+    #
+    # def _ricorsione(self, n, current, start, parziale, visitato, peso):
+    #
+    #     if len(parziale) == n:
+    #         if self._graph.has_edge(current, start):  # ciclo chiuso
+    #             if peso + self._graph[start][current]["weight"] > self._bestObjFunction:
+    #                 self._bestPath = copy.deepcopy(parziale)
+    #                 self._bestObjFunction = peso + self._graph[start][current]["weight"]
+    #                 return
+    #
+    #     for neighbor in list(self._graph.neighbors(current)):
+    #         if neighbor not in parziale:
+    #             pesoEdge = self._graph[current][neighbor]["weight"]
+    #             parziale.append(neighbor)
+    #             self._ricorsione(n, neighbor, start, parziale, visitato, peso + pesoEdge)
+    #             parziale.pop()
+
     def getPath(self, n):
         self._bestPath = []
         self._bestObjFunction = 0
-
         parziale = []
 
-        self._ricorsione(parziale, n)
+        for node in self._graph.nodes:
+            parziale.append(node)
+            self._ricorsione(n, node, node, parziale, 0)
+            parziale.pop()
 
-        return self._bestPath, self._bestObjFunction
+        # Chiudi il ciclo anche in output aggiungendo il nodo iniziale
+        if self._bestPath:
+            print(True)
+            self._bestPath.append(self._bestPath[0])
+            return self.printBestPath(), self._bestObjFunction
+        else:
+            return [], 0
 
-    def _ricorsione(self, parziale, n):
-
+    def _ricorsione(self, n, current, start, parziale, peso):
         if len(parziale) == n:
-            self._bestPath=copy.deepcopy(parziale)
-            self._bestObjFunction = self.getObjFun(parziale)
-
-        if len(parziale) == n+1:
+            if self._graph.has_edge(current, start):
+                pesoTot = peso + self._graph[current][start]["weight"]
+                if pesoTot > self._bestObjFunction:
+                    self._bestPath = copy.deepcopy(parziale)
+                    self._bestObjFunction = pesoTot
             return
 
-        for n in self._graph.nodes:
-            for vic in list(self._graph.neighbors(n)):
-                if len(parziale) == 0:
-                    parziale.append()
+        for neighbor in self._graph.neighbors(current):
+            if neighbor not in parziale:
+                pesoEdge = self._graph[current][neighbor]["weight"]
+                parziale.append(neighbor)
+                self._ricorsione(n, neighbor, start, parziale, peso + pesoEdge)
+                parziale.pop()
 
-
-
+    def printBestPath(self):
+        lista = []
+        j = 0
+        for i in self._bestPath:
+            j += 1
+            if j < len(self._bestPath):
+                peso = self._graph[self._bestPath[j-1]][self._bestPath[j ]]["weight"]
+                lista.append((self._bestPath[j-1], self._bestPath[j], peso))
+        return lista

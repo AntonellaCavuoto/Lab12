@@ -22,7 +22,6 @@ class Controller:
                 i += 1
         self._view.update_page()
 
-
     def handle_graph(self, e):
         anno = self._view.ddyear.value
         paese = self._view.ddcountry.value
@@ -32,7 +31,6 @@ class Controller:
         self._view.txt_result.controls.append(ft.Text(f"Numero di vertici: {numNodi} Numero di archi: {numArchi}"))
         self._view.update_page()
 
-
     def handle_volume(self, e):
         volumi = self._model.getVolumi()
 
@@ -40,6 +38,15 @@ class Controller:
             self._view.txtOut2.controls.append(ft.Text(f"{v[0]} --> {v[1]}"))
         self._view.update_page()
 
-
     def handle_path(self, e):
-        pass
+        numMax = self._view.txtN.value
+
+        bestPath, bestObjFunc = self._model.getPath(int(numMax))
+        self._view.txtOut3.controls.clear()
+        self._view.txtOut3.controls.append(ft.Text(f"Peso cammino massimo: {bestObjFunc}"))
+        self._view.update_page()
+
+        for i in bestPath:
+            self._view.txtOut3.controls.append(ft.Text(f"{i[0]} --> {i[1]}: {i[2]}"))
+
+            self._view.update_page()
